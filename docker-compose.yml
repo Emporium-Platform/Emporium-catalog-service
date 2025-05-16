@@ -1,18 +1,25 @@
-version: '3.8'
-
 services:
-  catalog:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+  catalog-primary:
+    build: .
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
-      - FLASK_APP=run.py
-      - FLASK_ENV=development
+      - ROLE=primary
+      - PEER_URL=http://catalog-backup:5000
+      - CACHE_INVALIDATE_URL=http://localhost:3000/cache/invalidate  # Will be updated when gateway is ready
     networks:
-      - emporium-network
+      - bazar-network
+
+  catalog-backup:
+    build: .
+    ports:
+      - "5002:5000"
+    environment:
+      - ROLE=backup
+      - PEER_URL=http://catalog-primary:5000
+    networks:
+      - bazar-network
 
 networks:
-  emporium-network:
+  bazar-network:
     driver: bridge
